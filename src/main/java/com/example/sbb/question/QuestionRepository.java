@@ -3,6 +3,7 @@ package com.example.sbb.question;
 import com.example.sbb.question.Question;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public interface QuestionRepository extends JpaRepository<Question,Integer> {
     List<Question> findBySubjectLike(String subject);
     //Pageable 객체를 입력받아 Page<Question> 타입 객체를 리턴하는 findAll()생성
     Page<Question> findAll(Pageable pageable);
-
+    //검색을 위해 service에 만들어둔 specification이 추가됨
+    Page<Question> findAll(Specification<Question> spec, Pageable pageable);
 }
 

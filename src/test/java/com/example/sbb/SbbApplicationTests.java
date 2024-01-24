@@ -23,14 +23,10 @@ class SbbApplicationTests {
 
     @Test
     void testJpa() {
-        //for조건식 사용해서 300개의 테스트 데이터를 생성한다
-        //이 때 제목의 숫자도 함께 증가할 수 있도록 한다.
-        for (int i=1; i <= 300; i++){
-            String subject = String.format("[%03d]번째 테스트 데이터 입니다",i);
-            String content = "내용없음";
-            this.questionService.create(subject,content);
+        for (int i = 1; i <= 300; i++) {
+            String subject = String.format("테스트 데이터입니다:[%03d]", i);
+            String content = "내용무";
+            this.questionService.create(subject, content, null);
         }
-
     }
-
 }

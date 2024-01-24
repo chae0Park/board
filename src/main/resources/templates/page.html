@@ -1,0 +1,20 @@
+ <nav th:fragment="pageFragment" style="text-align: center;">
+        <ul class="pagination justify-content-center" th:with="start=${(paging.number/maxPage)*maxPage + 1}, end=(${(paging.totalPages == 0) ? 1 : (start + (maxPage - 1) < paging.totalPages ? start + (maxPage - 1) : paging.totalPages)})">
+            <li class="page-item" th:if="${start > 1}">
+                <a class="page-link" th:href="@{/question/list(page=0)}" th:text="'<<'"></a>
+            </li>
+            <li class="page-item" th:if="${start > 1}">
+                <a class="page-link" th:href="@{/question/list(page=${start - maxPage})}" th:text="'<'"></a>
+            </li>
+            <li class="page-item" th:classappend="${page -1 == paging.number} ? 'active'" th:each="page: ${#numbers.sequence(start, end)}">
+                <a class="page-link" th:text="${page}" th:href="@{/question/list(page=${page - 1})}"></a>
+            </li>
+
+            <li class="page-item" th:if="${end < paging.totalPages}">
+                <a class="page-link" th:href="@{/question/list(page=${start + maxPage})}" th:text="'>'"></a>
+            </li>
+            <li class="page-item" th:if="${end < paging.totalPages}">
+                <a class="page-link" th:href="@{/question/list(page=${paging.totalPages - 1})}" th:text="'>>'"></a>
+            </li>
+        </ul>
+    </nav>
