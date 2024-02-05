@@ -8,9 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @Setter
@@ -34,9 +32,7 @@ public class Answer {
 
     @ToString.Exclude
     @OneToMany(mappedBy = "parent")
-    private Set<Answer> children = new LinkedHashSet<>();
-
-    private  String isParent;
+    private List<Answer> children = new ArrayList<>();
 
     @ManyToOne
     private SiteUser author;
@@ -45,4 +41,16 @@ public class Answer {
 
     @ManyToMany
     Set<SiteUser> voter;
+
+    // Additional methods for managing bidirectional relationship
+
+    public void addChild(Answer child) {
+        children.add(child);
+        child.setParent(this);
+    }
+
+    public void removeChild(Answer child) {
+        children.remove(child);
+        child.setParent(null);
+    }
 }

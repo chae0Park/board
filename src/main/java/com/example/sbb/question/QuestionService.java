@@ -24,12 +24,12 @@ public class QuestionService {//서비스는 비즈니스 로직을 처리한다
     private final QuestionRepository questionRepository;
 
     //질문 목록 조회메소드
-    public Page<Question> getList(int page, String kw){
+    public Page<Question> getList(int page, String kw,String searchType){
         List<Sort.Order> sorts = new ArrayList<>();
         sorts.add(Sort.Order.desc("createDate"));
         Pageable pageable = PageRequest.of(page,10, Sort.by(sorts));
         //검색
-        Specification<Question> spec = search(kw);
+        Specification<Question> spec = search(kw,searchType);
         return this.questionRepository.findAll(spec,pageable);
     }
 
@@ -75,26 +75,35 @@ public class QuestionService {//서비스는 비즈니스 로직을 처리한다
         this.questionRepository.save(question);
     }
 
-    //검색을 위헤 JPA의 Specification 인터페이스를 사용
-    private Specification<Question> search(String kw){
+    private Specification<Question> search(String kw, String searchType) {
         return new Specification<>() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public Predicate toPredicate(Root<Question> q, CriteriaQuery<?> query, CriteriaBuilder cb) {
-                query.distinct(true); //중복을 제거
-                //Question, SiteUser를 조인하여 만든 SiteUser타입의 u1 - 질문작성자 검색
-                Join<Question, SiteUser> u1 = q.join("author",JoinType.LEFT);
-                //Question, Answer를 조인하여 만든 Answer타입의 a - 답변 내용 검색
-                Join<Question, Answer> a = q.join("answerList",JoinType.LEFT);
-                //Answer, SiteUser를 조인하여 만든 SiteUser타입의 u2 - 답변 작성자 검색
-                Join<Answer, SiteUser> u2 = a.join("author",JoinType.LEFT);
+                query.distinct(true);
+                Join<Question, SiteUser> u1 = q.join("author", JoinType.LEFT);
+                Join<Question, Answer> a = q.join("answerList", JoinType.LEFT);
+                Join<Answer, SiteUser> u2 = a.join("author", JoinType.LEFT);
 
-                return  cb.or(cb.like(q.get("subject"), "%" + kw + "%"), //질문제목
-                        cb.like(q.get("content"), "%" + kw + "%"),//질문내용
-                        cb.like(u1.get("username"), "%" + kw + "%"),//질문 작성자
-                        cb.like(a.get("content"), "%" + kw + "%"),//답변내용
-                        cb.like(u2.get("username"), "%" + kw + "%"));//답변작성자
+                switch (searchType) {
+                    case "qUsername":
+                        return cb.like(u1.get("username"), "%" + kw + "%");
+                    case "qContent":
+                        return cb.like(q.get("content"), "%" + kw + "%");
+                    case "aUsername":
+                        return cb.like(u2.get("username"), "%" + kw + "%");
+                    case "aContent":
+                        return cb.like(a.get("content"), "%" + kw + "%");
+                    default:
+                        return cb.or(cb.like(q.get("subject"), "%" + kw + "%"),
+                                cb.like(q.get("content"), "%" + kw + "%"),
+                                cb.like(u1.get("username"), "%" + kw + "%"),
+                                cb.like(a.get("content"), "%" + kw + "%"),
+                                cb.like(u2.get("username"), "%" + kw + "%"));
+                }
             }
         };
     }
+
 }

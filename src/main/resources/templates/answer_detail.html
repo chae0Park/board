@@ -1,0 +1,85 @@
+<nav th:fragment="answerFragment" >
+    <!--답변의 갯수 표시-->
+    <h5 class="border-bottom my-3 py-2"
+        th:text="|${#lists.size(question.answerList)}개의 답변이 있습니다.|">
+
+    </h5>
+    <!--답변 반복 시작-->
+    <div class="card my-3" th:each="answer : ${question.answerList}">
+        <!--        답변앵커-->
+        <a th:id="|answer_${answer.id}|"></a>
+        <div class="card-body">
+            <div class="card-text" th:utext="${@commonUtil.markdown(answer.content)}"></div>
+
+            <div class="d-flex justify-content-end">
+                <div th:if="${answer.modifyDate != null}" class="badge bg-light text-dark p-2 text-start mx-3">
+                    <div class="m-2">modified at</div>
+                    <div th:text="${#temporals.format(answer.modifyDate, 'yyyy-MM-dd HH:mm')}"></div>
+                </div>                <div class="badge bg-light text-dark p-2 text-start">
+                <span th:if="${answer.author != null}" th:text="${answer.author.username}"></span>
+                <div th:text="${#temporals.format(answer.createDate,'yyyy-MM-dd HH:mm')}"></div>
+            </div>
+            </div>
+            <!--추천~삭제 버튼-->
+            <div class="border-bottom my-3 py-2">
+            <a href="javascript:void(0);" class="recommend btn btn-sm btn-outline-secondary"
+               th:data-uri="@{|/answer/vote/${answer.id}|}">
+                추천
+                <span class="badge rounded-pill bg-success" th:text="${#lists.size(answer.voter)}"></span>
+            </a>
+                <a th:href="@{|/answer/modify/${answer.id}|}"
+                                   class="btn btn-sm btn-outline-secondary"
+                                   sec:authorize="isAuthenticated()"
+                                   th:if="${answer.author != null and #authentication.getPrincipal().getUsername() == answer.author.username}"
+                                   th:text="수정"></a>
+            <a href="javascript:void(0);" th:data-uri="@{|/answer/delete/${answer.id}|}"
+               class="delete btn btn-sm btn-outline-secondary" sec:authorize="isAuthenticated()"
+               th:if="${answer.author != null and #authentication.getPrincipal().getUsername() == answer.author.username}"
+               th:text="삭제"></a>
+        </div>
+
+            <!-- Child Answer Form -->
+            <form th:action="@{|/answer/create/child/${answer.id}|}" method="post" class="mb-3">
+                <!-- Content Input -->
+                <div class="mb-3">
+                    <label for="content" class="form-label">reply:</label>
+                    <textarea th:field="${answerForm.content}" class="form-control" id="content"
+                              placeholder="Enter your answer content" required></textarea>
+                </div>
+
+                <!-- Hidden Field for Parent ID -->
+                <input type="hidden" th:field="${answerForm.parentId}" th:value="${answerForm.parentId}" />
+
+                <!-- Submit Button -->
+                <button type="submit" class="btn btn-primary">submit</button>
+            </form>
+            <!-- Display Child Answers -->
+            <div th:each="child : ${answer.children}">
+                <div class="card my-3 ml-4">
+                    <!-- Child Answer Content -->
+                    <div class="card-body">
+                        <div class="card-text" th:utext="${@commonUtil.markdown(child.content)}"></div>
+                        <!-- 작성자와 삭제기능만  -->
+                        <span th:text="${child.author.username}"></span>
+                        <a href="javascript:void(0);"
+                           th:data-uri="@{|/answer/delete/child/${id}/${child.id}|}"
+                           class="delete btn btn-sm btn-outline-danger"
+                           sec:authorize="isAuthenticated()"
+                           th:if="${child.author != null and #authentication.getPrincipal().getUsername() == child.author.username}"
+                           th:text="삭제"></a>
+                    </div>
+                </div>
+            </div>
+            <!-- End of Child Answers -->
+        </div>
+    </div>
+    <!--답변 반복 끝-->
+    <!-- 답변 작성 -->
+    <form th:action="@{|/answer/create/${question.id}|}" th:object="${answerForm}" method="post" class="my-3">
+        <div th:replace="~{form_errors :: formErrorsFragment}"></div>
+        <textarea sec:authorize="isAnonymous()" disabled th:field="*{content}" class="form-control" rows="10"></textarea>
+        <textarea sec:authorize="isAuthenticated()" th:field="*{content}" class="form-control" rows="10"></textarea>
+        <input type="submit" value="답변등록" class="btn btn-primary my-2">
+    </form>
+    </div>
+</nav>

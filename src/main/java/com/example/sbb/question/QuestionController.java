@@ -30,12 +30,15 @@ public class QuestionController {
     @GetMapping("/list")
     public String list(Model model,
                        @RequestParam(value = "page", defaultValue = "0") int page,
-                       @RequestParam(value = "kw", defaultValue = "") String kw) {
-        Page<Question> paging = this.questionService.getList(page,kw);
+                       @RequestParam(value = "kw", defaultValue = "") String kw,
+                       @RequestParam(value = "searchType", defaultValue = "all") String searchType) {
+        Page<Question> paging = this.questionService.getList(page,kw,searchType);
         model.addAttribute("paging", paging); //템플릿에 ${paging}이 "paging"임
-        //added code - maxPage
+        //added code - maxPage and consider calculating this based on the actyual numer or pages
         model.addAttribute("maxPage", 10);
         model.addAttribute("kw",kw);
+        //To remember the selected seatch Type in the view
+        model.addAttribute("searchType", searchType);
         return "question_list";
     }
 

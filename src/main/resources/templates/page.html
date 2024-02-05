@@ -4,14 +4,14 @@
                 <a class="page-link" th:href="@{/question/list(page=0)}" th:text="'<<'"></a>
             </li>
             <li class="page-item" th:if="${start > 1}">
-                <a class="page-link" th:href="@{/question/list(page=${start - maxPage})}" th:text="'<'"></a>
+                <a class="page-link" th:href="@{/question/list(page=${(start - maxPage)-1})}" th:text="'<'"></a>
             </li>
             <li class="page-item" th:classappend="${page -1 == paging.number} ? 'active'" th:each="page: ${#numbers.sequence(start, end)}">
                 <a class="page-link" th:text="${page}" th:href="@{/question/list(page=${page - 1})}"></a>
             </li>
 
             <li class="page-item" th:if="${end < paging.totalPages}">
-                <a class="page-link" th:href="@{/question/list(page=${start + maxPage})}" th:text="'>'"></a>
+                <a class="page-link" th:href="@{/question/list(page=${(start + maxPage)-1 })}" th:text="'>'"></a>
             </li>
             <li class="page-item" th:if="${end < paging.totalPages}">
                 <a class="page-link" th:href="@{/question/list(page=${paging.totalPages - 1})}" th:text="'>>'"></a>

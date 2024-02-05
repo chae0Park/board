@@ -9,4 +9,7 @@ import lombok.Setter;
 public class AnswerForm {
     @NotEmpty(message = "내용을 입력해주세요")
     private String content;
+
+    // New field to capture the parent answer's ID
+    private Integer parentId;
 }

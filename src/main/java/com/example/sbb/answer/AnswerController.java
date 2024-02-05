@@ -11,10 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.Principal;
@@ -31,26 +28,62 @@ public class AnswerController {
     //생성한 답변의 값을 저장하기 위해 선언됨.
     private final UserService userService;
 
-    //답변등록
+
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/create/{id}")
     public String createAnswer(Model model, @PathVariable("id") Integer id,
                                @Valid AnswerForm answerForm, BindingResult bindingResult,
                                Principal principal) {
 
-        //상세 질문 객체
+        // Get the question
         Question question = this.questionService.getQuestion(id);
-        //로그인한 유저 = author
-        SiteUser siteUser = this.userService.getUser(principal.getName());
 
+        // Validate the form input
         if (bindingResult.hasErrors()) {
-            model.addAttribute("question",question);
+            model.addAttribute("question", question);
             return "question_detail";
         }
-        Answer answer = this.answerService.create(question, answerForm.getContent(), siteUser);
+
+        // Create the answer (either parent or child)
+        SiteUser siteUser = this.userService.getUser(principal.getName());
+        Answer answer;
+        if (answerForm.getParentId() != null) {
+            // If parentId is present in the form, create a child answer
+            Answer parentAnswer = this.answerService.getAnswer(answerForm.getParentId());
+            answer = this.answerService.createChild(parentAnswer, answerForm.getContent(), siteUser);
+        } else {
+            // If parentId is not present, create a regular answer
+            answer = this.answerService.create(question, answerForm.getContent(), siteUser);
+        }
+
         return String.format("redirect:/question/detail/%s#answer_%s", answer.getQuestion().getId(),
                 answer.getId());
     }
+
+    // child answer
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/create/child/{parentId}")
+    public String createChildAnswer(Model model,
+                                    @PathVariable("parentId") Integer parentId,
+                                    @Valid AnswerForm answerForm, BindingResult bindingResult,
+                                    Principal principal) {
+        // Get the parent answer
+        Answer parentAnswer = this.answerService.getAnswer(parentId);
+
+        // Validate the form input
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("question", parentAnswer.getQuestion());
+            return "question_detail";
+        }
+
+        // Create the child answer
+        SiteUser siteUser = this.userService.getUser(principal.getName());
+        Answer childAnswer = this.answerService.createChild(parentAnswer, answerForm.getContent(), siteUser);
+
+        return String.format("redirect:/question/detail/%s#answer_%s", parentAnswer.getQuestion().getId(),
+                childAnswer.getId());
+    }
+
 
     //수정
     @PreAuthorize("isAuthenticated()")
@@ -80,7 +113,7 @@ public class AnswerController {
         return String.format("redirect:/question/detail/%s#answer_%s", answer.getQuestion().getId(), answer.getId());
     }
 
-    //삭제
+    //댓글삭제
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/delete/{id}")
     public String answerDelete(Principal principal,@PathVariable("id") Integer id){
@@ -90,6 +123,28 @@ public class AnswerController {
         }
         this.answerService.delete(answer);
         return String.format("redirect:/question/detail/%s", answer.getQuestion().getId());
+    }
+
+    //대댓글 삭제
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/delete/child/{id}/{childId}")
+    public String deleteChildAnswer(Principal principal,
+                                    @PathVariable("childId") Integer childId){
+        Answer childAnswer = answerService.getAnswer(childId);// get a certain child answer
+
+        //get the child's parent
+        Answer parentAnswer = childAnswer.getParent();
+
+        //check if the current user is the author of the child answer
+        if(!childAnswer.getAuthor().getUsername().equals(principal.getName())){
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"삭제 권한이 없습니다.");
+        }
+        //fetch questionId before deletion
+        Integer questionId = parentAnswer.getQuestion().getId();
+
+        //Use service method to delete the child answer
+        answerService.deleteChild(parentAnswer, childAnswer);
+        return String.format("redirect:/question/detail/%s", questionId);
     }
 
     //추천인등록
