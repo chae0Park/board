@@ -5,8 +5,20 @@
     <div class="card my-3">
         <div class="card-body">
             <div class="card-text" th:utext="${@commonUtil.markdown(question.content)}"></div>
-            <div class="card-text" style="white-space: pre-line;"
-                 th:text="${question.content}"></div>
+
+            <!-- 이미지 업로드 -->
+            <div th:if="${question.attachments != null and !question.attachments.isEmpty()}" class="card my-3">
+                <p>Attachments</p>
+                <ul>
+                    <li th:each="attachment : ${question.attachments}">
+                        <a th:href="@{/files/{filename}(filename=${attachment.fileName})}" th:text="${attachment.fileName}">Attachment</a>
+<!--                        <a th:href="@{${attachment.filePath}}" th:text="${attachment.fileName}">Attachment</a>-->
+                    </li>
+                </ul>
+            </div>
+
+
+            <!--수정된 날짜-->
             <div class="d-flex justify-content-end">
                 <div th:if="${question.modifyDate != null}"
                      class="badge bg-light text-dark p-2 text-start mx-3">
@@ -43,6 +55,7 @@
     <nav th:replace="~{answer_detail :: answerFragment}"></nav>
 
 <script layout:fragment="script" type='text/javascript'>
+
     const delete_elements = document.getElementsByClassName("delete");
     Array.from(delete_elements).forEach(function(element){
         element.addEventListener('click',function(){
@@ -59,5 +72,7 @@
             };
         });
     });
+
+
 </script>
 </html>

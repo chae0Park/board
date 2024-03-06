@@ -4,19 +4,30 @@ package com.example.sbb.question;
 import com.example.sbb.answer.AnswerForm;
 import com.example.sbb.user.SiteUser;
 import com.example.sbb.user.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.Resource;
 
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import org.springframework.core.io.UrlResource;
+
+import java.io.IOException;
 import java.security.Principal;
-import java.util.List;
 
 @RequestMapping("/question")
 @RequiredArgsConstructor //questionRepository속성 포함하는 생성자 생성
@@ -25,6 +36,8 @@ public class QuestionController {
 
     private final QuestionService questionService;
     private final UserService userService;
+    @Value("${app.upload.dir}")
+    private String uploadDir;
 
     //전체 질문 목록을 가져옴
     @GetMapping("/list")
@@ -58,19 +71,70 @@ public class QuestionController {
         return "question_form";
     }
 
+
     //질문을 post하면 저장하고 redirect 해줄 메소드
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/create")
     public String questionCreate(@Valid QuestionForm questionForm,
-                     BindingResult bindingResult, Principal principal){
+                     BindingResult bindingResult, Principal principal) throws IOException{
         if (bindingResult.hasErrors()){
             return "question_form";
         }
         //글쓴이가 누군지 찾아야함
         SiteUser siteUser = userService.getUser(principal.getName());
-        this.questionService.create(questionForm.getSubject(), questionForm.getContent(),siteUser);
+        this.questionService.create(questionForm.getSubject(), questionForm.getContent(), siteUser, questionForm.getFiles());
         return "redirect:/question/list"; //질문 저장 후 질문목록으로 이동
     }
+
+    //첨부파일 다운로드 - 두 가지다 잘 작동
+    @GetMapping("/files/{filename:.+}")
+    public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
+        try {
+            Path file = Paths.get(uploadDir).resolve(filename);
+            Resource resource = new UrlResource(file.toUri());
+
+            if (resource.exists() || resource.isReadable()) {
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                throw new RuntimeException("Could not read the file!");
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Error: " + e.getMessage());
+        }
+    }
+
+//    @GetMapping("/files/{filename:.+}")
+//    public ResponseEntity<Resource> downloadFile(@PathVariable String filename, HttpServletRequest request) {
+//        // Resolve the file based on the uploadDir
+//        Path filePath = Paths.get(uploadDir).resolve(filename).normalize();
+//        Resource resource = null;
+//        try {
+//            resource = new UrlResource(filePath.toUri());
+//            if (!resource.exists()) {
+//                throw new RuntimeException("File not found " + filename);
+//            }
+//        } catch (MalformedURLException ex) {
+//            throw new RuntimeException("File not found " + filename, ex);
+//        }
+//
+//        // Try to determine file's content type
+//        String contentType = null;
+//        try {
+//            contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+//        } catch (IOException ex) {
+//            contentType = "application/octet-stream";
+//        }
+//
+//        return ResponseEntity.ok()
+//                .contentType(MediaType.parseMediaType(contentType))
+//                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+//                .body(resource);
+//    }
+
+
+
 
     //질문을 수정한다
     //@PreAuthorize("isAuthenticated()")

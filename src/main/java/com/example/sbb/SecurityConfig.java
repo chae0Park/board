@@ -21,6 +21,7 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
         .authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
+                .requestMatchers("/files/**").permitAll() // Allow public access to /files/**
                 .requestMatchers(new AntPathRequestMatcher("/**")).permitAll())
 //        csrf기능을 사용하지 않는곳은 요청을 무시하는 matchers를 만들어준다
         .csrf((csrf) -> csrf

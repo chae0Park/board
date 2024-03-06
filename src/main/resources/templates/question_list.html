@@ -48,7 +48,7 @@
             </tbody>
         </table>
 <!--페이징 처리 시작-->
-        <nav th:replace="~{page :: pageFragment}"></nav>
+        <div th:replace="~{page :: pageFragment}"></div>
 <!--페이징 처리 끝-->
 
     <form th:action="@{/question/list}" method="get" id="searchForm">
