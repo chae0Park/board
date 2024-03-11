@@ -1,30 +1,121 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/html">
-    <div layout:fragment="content" class="container my-3">
-        <div class="my-3 border-bottom">
-            <div>
-                <h4>회원가입</h4>
-            </div>
+<div layout:fragment="content" class="container my-3">
+    <div class="my-3 border-bottom">
+        <div>
+            <h4>회원가입</h4>
         </div>
-
-        <form th:action="@{/user/signup}" th:object="${userCreateForm}" method="post">
-            <div th:replace="~{form_errors :: formErrorsFragment}"></div>
-            <div class="mb-3">
-                <label for="username" class="form-label">사용자ID</label>
-                <input type="text" th:field="*{username}" class="form-control">
-            </div>
-            <div class="mb-3">
-                <label for="password1" class="form-label">비밀번호</label>
-                <input type="password" th:field="*{password1}" class="form-control">
-            </div>
-            <div class="mb-3">
-                <label for="password2" class="form-label">비밀번호 확인</label>
-                <input type="password" th:field="*{password2}" class="form-control">
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">이메일</label>
-                <input type="email" th:field="*{email}" class="form-control">
-            </div>
-            <button type="submit" class="btn btn-primary">회원가입</button>
-        </form>
     </div>
+
+    <form th:action="@{/user/signup}" th:object="${userCreateForm}" method="post">
+        <div th:replace="~{form_errors :: formErrorsFragment}"></div>
+        <div class="mb-3">
+            <label id="label1" for="username" class="form-label">사용자ID</label>
+            <input type="text" th:field="*{username}" class="form-control" id="username"> <!-- Made sure to add id="username" -->
+        </div>
+        <div class="mb-3">
+            <label for="password1" class="form-label">비밀번호</label>
+            <input type="password" th:field="*{password1}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label for="password2" class="form-label">비밀번호 확인</label>
+            <input type="password" th:field="*{password2}" class="form-control">
+        </div>
+        <div class="mb-3">
+            <label id="label2" for="email" class="form-label">이메일</label>
+            <input type="email" th:field="*{email}" class="form-control" id="email">
+        </div>
+        <button type="submit" class="btn btn-primary">회원가입</button>
+    </form>
+</div>
+<script layout:fragment="script" type='text/javascript'>
+    // $(document).ready(function() {
+    //     //ID 중복 확인
+    //     //id를 입력할 수 있는 input text 영역을 벗어나면 동작한다.
+    //     $("#username").on("focusout", function() { // Changed the selector to match the input's ID
+    //
+    //         var username = $(this).val(); // Corrected to the right selector
+    //
+    //
+    //         //Ajax로 전송
+    //         $.ajax({
+    //             url : '/user/check-username',
+    //             data : { username: username },
+    //             type : 'GET',
+    //             dataType : 'json',
+    //             success : function(isAvailable) {
+    //                 if (isAvailable) {
+    //                     $("#label1").css("color", "black").text("사용 가능한 ID 입니다.");
+    //                 } else{
+    //                     $("#label1").css("color", "red").text("이미 존재하는 ID 입니다.");
+    //                     $("#username").val('');
+    //                 }
+    //             }
+    //         }); //End Ajax
+    //     });
+    // });
+    //
+    // //email checking ajax
+    // $(document).ready(function (){
+    //     $("#email").on("focusout", function (){
+    //         var email = $(this).val();
+    //
+    //         $.ajax({
+    //             url : '/user/check-email',
+    //             data : {email: email },
+    //             type : 'GET',
+    //             dataType: 'json',
+    //             success : function (isAvailable) {
+    //                 if (isAvailable){
+    //                     $("#label2").css("color","black").text("사용 가능한 이메일 입니다.");
+    //                 }else {
+    //                     $("#label2").css("color", "red").text("이미 존재하는 이메일 입니다.");
+    //                     $("#email").val('');
+    //                 }
+    //             }
+    //         })
+    //     })
+    // })
+
+    //refactored
+    $(document).ready(function() {
+        function validateField(fieldId, checkUrl, successLabel, failureLabel) {
+            var fieldValue = $(fieldId).val();
+
+            $.ajax({
+                url: checkUrl,
+                data: { [fieldId.substring(1)]: fieldValue }, // Dynamically set the data key based on fieldId
+                type: 'GET',
+                dataType: 'json',
+                success: function(isAvailable) {
+                    var labelElement = $(fieldId).prev("label"); // Assumes label is directly before the input
+                    if (isAvailable) {
+                        labelElement.css("color", "black").text(successLabel);
+                    } else {
+                        labelElement.css("color", "red").text(failureLabel);
+                        $(fieldId).val('');
+                    }
+                }
+            });
+        }
+
+        $("#username").on("focusout", function() {
+            validateField(
+                "#username",
+                '/user/check-username',
+                "사용 가능한 ID 입니다.",
+                "이미 존재하는 ID 입니다."
+            );
+        });
+
+        $("#email").on("focusout", function() {
+            validateField(
+                "#email",
+                '/user/check-email',
+                "사용 가능한 이메일 입니다.",
+                "이미 존재하는 이메일 입니다."
+            );
+        });
+    });
+
+</script>
 </html>

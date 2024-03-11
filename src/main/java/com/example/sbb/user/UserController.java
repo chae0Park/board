@@ -2,11 +2,10 @@ package com.example.sbb.user;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @Controller
@@ -46,4 +45,22 @@ public class UserController {
     public String login(){
         return "login_form";
     }
+
+    //회원가입시 아이디 중복을 검사하는 코드
+    @GetMapping("/check-username")
+    @ResponseBody
+    public ResponseEntity<Boolean> checkUsernameAvailability(@RequestParam String username){
+        boolean isAvailable = userService.isUsernameAvailable(username);
+        return ResponseEntity.ok(isAvailable);
+    }
+
+    //회원가입시 이메일 중복을 검사하는 코드
+    @GetMapping("/check-email")
+    @ResponseBody
+    public ResponseEntity<Boolean> checkEmailAvailability(@RequestParam String email){
+        boolean isAvailable = userService.isEmailAvailable(email);
+        return ResponseEntity.ok(isAvailable);
+    }
+
+
 }

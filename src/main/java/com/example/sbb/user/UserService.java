@@ -25,6 +25,16 @@ public class UserService {
         return user;
     }
 
+    //ID 중복을 확인하기 위한 메소드
+    public boolean isUsernameAvailable(String username){
+        return userRepository.findByusername(username).isEmpty();
+    }
+
+    //email 중복을 확인하기 위한 메소드
+    public boolean isEmailAvailable(String email){
+        return userRepository.findByEmail(email).isEmpty();
+    }
+
     //user를 조회하는 메소드
     public SiteUser getUser(String username){
         //SiteUser 타입의 객체를 username으로 찾아냄, 즉 SiteUser객체 하나가 들어가있음
