@@ -7,17 +7,19 @@
 <!--            class="card-text"-->
             <div  class="border-bottom py-2" th:utext="${@commonUtil.markdown(question.content)}"></div>
 
+
+<!--            이미지 업로드 프리뷰 다운로드 & 정렬 다시 보기 -->
                 <!--이미지 업로드/ 프리뷰-->
-<!--            <div class="border-bottom py-2" th:if="${not #lists.isEmpty(question.attachments)}">-->
-<!--                <h3>Attachments</h3>-->
-<!--                <ul>-->
-<!--                    <li th:each="attachment : ${question.attachments}">-->
-<!--                        <a th:href="@{/files/{filename}(filename=${attachment.fileName})}" th:text="${attachment.fileName}">Attachment</a>-->
-<!--                        &lt;!&ndash; Display image preview &ndash;&gt;-->
-<!--                        <img th:src="@{/files/{filename}(filename=${attachment.fileName})}" alt="Image preview" style="width: 100px; height: auto;"/>-->
-<!--                    </li>-->
-<!--                </ul>-->
-<!--            </div>-->
+            <div class="border-bottom py-2" th:if="${not #lists.isEmpty(question.attachments)}">
+                <h3>Attachments</h3>
+                <ul>
+                    <li th:each="attachment : ${question.attachments}">
+                        <a th:href="@{/files/{filename}(filename=${attachment.fileName})}" th:text="${attachment.fileName}">Attachment</a>
+                        <!-- Display image preview -->
+                        <img th:src="@{/files/{filename}(filename=${attachment.fileName})}" alt="Image preview" style="width: 100px; height: auto;"/>
+                    </li>
+                </ul>
+            </div>
 
             <!-- 이미지 업로드/프리뷰 정렬 -->
             <div class="card-img" th:if="${not #lists.isEmpty(question.attachments)}">
